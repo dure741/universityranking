@@ -31,16 +31,17 @@ var (
 //Rank 每一条数据元组
 //可根据不用榜单进行添加
 type Rank struct {
-	ID       uint    //id
-	Brand    string  //榜单名称
-	Year     int     //发布年份
-	Rank     int     //当年排名
-	Name     string  //高校名称
-	Category string  //高校归类
-	Location string  //高校地点
-	Score    float64 //高校评分 from武书连榜单、校友会榜单
-	Star     int     //高校星级 from？
-	Level    string  //高校评级 from校友会榜单
+	ID             uint    //id
+	Brand          string  //榜单名称
+	Year           int     //发布年份
+	Rank           int     //当年排名
+	Name           string  //高校名称
+	Category       string  //高校归类
+	Location       string  //高校地点
+	RankInlocation int     //高校在本地区排名 from校友会2017
+	Score          float64 //高校评分 from武书连榜单、校友会榜单
+	Star           int     //高校星级 from？
+	Level          string  //高校评级 from校友会榜单
 }
 
 //main 函数
@@ -56,16 +57,19 @@ func main() {
 	//AutoMigrate 对指定模型运行自动迁移，只会添加缺少的字段，不会删除/更改当前数据
 	db.AutoMigrate(&Rank{})
 
-	//处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
-	crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
-	//处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
-	crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
-	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
-	crawlXyh("https://www.dxsbb.com/news/1383.html", 2018, 0)
-	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年，此为第二页
-	crawlXyh("https://www.dxsbb.com/news/1383_2.html", 2018, 0)
-	//处理链接https://www.sohu.com/a/126283593_356902，标记为2018年
-	crawlXyh2017("https://www.sohu.com/a/126283593_356902", 2017, 6)
+	// //处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
+	// crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
+	// //处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
+	// crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
+	// //处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
+	// crawlXyh("https://www.dxsbb.com/news/1383.html", 2018, 0)
+	// //处理链接https://www.dxsbb.com/news/1383.html，标记为2018年，此为第二页
+	// crawlXyh("https://www.dxsbb.com/news/1383_2.html", 2018, 0)
+	// //处理链接https://www.sohu.com/a/126283593_356902，标记为2018年
+	crawlXyh2017start("https://www.sohu.com/a/126283593_356902", 2017, 0)
+	for i := 1; i <= 6; i++ {
+		crawlXyh2017("https://www.sohu.com/a/126283593_356902", 2017, i)
+	}
 
 	//提示结束
 	log.Println("end...")
@@ -195,7 +199,7 @@ func stringToFloat64(s string) float64 {
 }
 
 //crawlxyh2017 绑定链接https://www.sohu.com/a/126283593_356902
-func crawlXyh2017(url string, year int, tableIdx int) {
+func crawlXyh2017start(url string, year int, tableIdx int) {
 	doc, err := fetchDoc(url)
 	if err != nil {
 		log.Println(err.Error())
@@ -223,19 +227,56 @@ func crawlXyh2017(url string, year int, tableIdx int) {
 		item.Year = year
 		item.Rank, _ = strconv.Atoi(r[0])
 		item.Name = r[1]
-		item.Score = stringToFloat64(r[2])
-		if year == 2019 {
-			item.Level = r[3]
-		}
-		if year == 2018 {
-			starNum := strings.TrimRight(r[3], "星级")
-			item.Star, _ = strconv.Atoi(starNum)
-			item.Level = r[4]
-		}
+		//item.Score = stringToFloat64(r[2])
+		item.Location = r[2]
+		item.RankInlocation, _ = strconv.Atoi(r[3])
+		item.Score = stringToFloat64(r[4])
+		item.Category = r[5]
+		item.Star, _ = strconv.Atoi(strings.Trim(r[6], "星级"))
+		item.Level = r[7]
 
 		// save
-		//save(&item)
-		fmt.Println(&item)
+		save(&item)
+	}
+}
+func crawlXyh2017(url string, year int, tableIdx int) {
+	doc, err := fetchDoc(url)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	var row []string
+	var rows [][]string
+	doc.Find("table").Each(func(i int, ta *goquery.Selection) {
+		if i == tableIdx {
+			ta.Find("tr").Each(func(i int, tr *goquery.Selection) {
+				tr.Find("td").Each(func(j int, td *goquery.Selection) {
+					row = append(row, td.Text())
+				})
+				if len(row) != 0 {
+					rows = append(rows, row)
+				}
+				row = nil
+			})
+		}
+	})
+
+	for _, r := range rows[:] {
+		var item Rank
+		item.Brand = "xyh"
+		item.Year = year
+		item.Rank, _ = strconv.Atoi(r[0])
+		item.Name = r[1]
+		//item.Score = stringToFloat64(r[2])
+		item.Location = r[2]
+		item.RankInlocation, _ = strconv.Atoi(r[3])
+		item.Score = stringToFloat64(r[4])
+		item.Category = r[5]
+		item.Star, _ = strconv.Atoi(strings.Trim(r[6], "星级"))
+		item.Level = r[7]
+
+		// save
+		save(&item)
 	}
 }
 
