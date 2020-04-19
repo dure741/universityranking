@@ -29,19 +29,21 @@ var (
 )
 
 //Rank 每一条数据元组
-//可根据不用榜单进行添加
+//可根据不同榜单进行添加
 type Rank struct {
-	ID             uint    //id
-	Brand          string  //榜单名称
-	Year           int     //发布年份
-	Rank           int     //当年排名
-	Name           string  //高校名称
-	Category       string  //高校归类
-	Location       string  //高校地点
-	RankInlocation int     //高校在本地区排名 from校友会2017
-	Score          float64 //高校评分 from武书连榜单、校友会榜单
-	Star           int     //高校星级 from？
-	Level          string  //高校评级 from校友会榜单
+	ID                      uint    //id
+	Brand                   string  //榜单名称
+	Year                    int     //发布年份
+	Rank                    int     //当年排名
+	Name                    string  //高校名称
+	Category                string  //高校归类
+	Location                string  //高校地点
+	RankInlocation          int     //高校在本地区排名 from校友会2017
+	Score                   float64 //高校评分 from武书连榜单、校友会榜单
+	Star                    int     //高校星级 from？
+	Level                   string  //高校评级 from校友会榜单
+	ScientificResearchScore float64 //科学研究评分
+	TelentScore             float64 //人才培养评分
 }
 
 //main 函数
@@ -57,19 +59,21 @@ func main() {
 	//AutoMigrate 对指定模型运行自动迁移，只会添加缺少的字段，不会删除/更改当前数据
 	db.AutoMigrate(&Rank{})
 
-	//处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
-	crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
-	//处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
-	crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
-	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
-	crawlXyh("https://www.dxsbb.com/news/1383.html", 2018, 0)
-	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年，此为第二页
-	crawlXyh("https://www.dxsbb.com/news/1383_2.html", 2018, 0)
-	//处理链接https://www.sohu.com/a/126283593_356902，标记为2018年
-	crawlXyh2017start("https://www.sohu.com/a/126283593_356902", 2017, 0)
-	for i := 1; i <= 6; i++ {
-		crawlXyh2017("https://www.sohu.com/a/126283593_356902", 2017, i)
-	}
+	// //处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
+	// crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
+	// //处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
+	// crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
+	// //处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
+	// crawlXyh("https://www.dxsbb.com/news/1383.html", 2018, 0)
+	// //处理链接https://www.dxsbb.com/news/1383.html，标记为2018年，此为第二页
+	// crawlXyh("https://www.dxsbb.com/news/1383_2.html", 2018, 0)
+	// //处理链接https://www.sohu.com/a/126283593_356902，标记为2018年
+	// crawlXyh2017start("https://www.sohu.com/a/126283593_356902", 2017, 0)
+	// for i := 1; i <= 6; i++ {
+	// 	crawlXyh2017("https://www.sohu.com/a/126283593_356902", 2017, i)
+	// }
+	//处理链接https://www.phb123.com/jiaoyu/gx/32517.html，标记为2019年
+	crawlWsl2019("https://www.phb123.com/jiaoyu/gx/32517.html", 2019)
 
 	//提示结束
 	log.Println("end...")
@@ -112,6 +116,54 @@ func crawlWsl(url string, year int) {
 		item.Category = r[2]
 		item.Location = r[3]
 		item.Score = stringToFloat64(r[4])
+		// save每一个元组
+		save(&item)
+	}
+}
+
+//处理武书连榜单，捆绑于https://www.phb123.com/jiaoyu/gx/32517.html下页面
+func crawlWsl2019(url string, year int) {
+	//通过链接获取文档
+	doc, err := fetchDoc(url)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	//声明行切片
+	var row []string
+	//声明表切片
+	var rows [][]string
+
+	//本网页字段包含无法识别字符，创造字符串变量将其置换
+	var deprecate string
+
+	//在doc中查找“tr”节点
+	doc.Find("tr").Each(func(i int, tr *goquery.Selection) {
+		//tr节点中查找“td”节点
+		tr.Find("td").Each(func(j int, td *goquery.Selection) {
+			//将结果存入行切片
+			row = append(row, td.Text())
+		})
+		if len(row) != 0 {
+			//将行存入表切片
+			rows = append(rows, row)
+		}
+		//清空行切片
+		row = nil
+	})
+
+	deprecate = strings.TrimRight(rows[0][0], "名次")
+	for _, r := range rows[1:] {
+		//初始数据库元组结构体
+		var item Rank
+		item.Brand = "wsl"
+		item.Year = year
+		item.Rank, _ = strconv.Atoi(strings.ReplaceAll(r[0], deprecate, ""))
+		item.Name = strings.ReplaceAll(r[1], deprecate, "")
+		item.Location = strings.ReplaceAll(r[2], deprecate, "")
+		item.Category = strings.ReplaceAll(r[3], deprecate, "")
+		item.ScientificResearchScore = stringToFloat64(strings.ReplaceAll(r[4], deprecate, ""))
+		item.TelentScore = stringToFloat64(strings.ReplaceAll(r[5], deprecate, ""))
+		item.Score = stringToFloat64(strings.ReplaceAll(r[6], deprecate, ""))
 		// save每一个元组
 		save(&item)
 	}
