@@ -4,11 +4,11 @@ TIMES_泰晤士:		http://www.compassedu.hk/times
 GUARDIAN_卫报大学排名:	http://www.compassedu.hk/guardian
 ARWU_软科大学排名:	http://www.compassedu.hk/arwu
 USNEWS_美国新闻与世界报道:http://www.compassedu.hk/usnews
-武书连2019:		https://www.phb123.com/jiaoyu/gx/32517.html
+//武书连2019:		https://www.phb123.com/jiaoyu/gx/32517.html
 //武书连2018:		https://www.dxsbb.com/news/46702.html
 //校友会2019:		https://www.dxsbb.com/news/5463.html//
 //校友会2018:		https://www.dxsbb.com/news/1383.html
-校友会2017:		https://www.sohu.com/a/126283593_356902
-校友会2016:		http://www.gaokao.com/e/20160111/569382097691b.shtml
+//校友会2017:		https://www.sohu.com/a/126283593_356902
+//校友会2016:		http://www.gaokao.com/e/20160111/569382097691b.shtml
 校友会2015:		https://www.phb123.com/jiaoyu/gx/3427.html
 网大榜2017:		https://www.sohu.com/a/202060292_760366

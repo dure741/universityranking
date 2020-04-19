@@ -37,6 +37,7 @@ type Rank struct {
 	Rank                    int     //当年排名
 	Name                    string  //高校名称
 	Category                string  //高校归类
+	TypeOfSchool            string  //办学类型
 	Location                string  //高校地点
 	RankInlocation          int     //高校在本地区排名 from校友会2017
 	Score                   float64 //高校评分 from武书连榜单、校友会榜单
@@ -74,7 +75,8 @@ func main() {
 	}
 	//处理链接https://www.phb123.com/jiaoyu/gx/32517.html，标记为2019年
 	crawlWsl2019("https://www.phb123.com/jiaoyu/gx/32517.html", 2019)
-
+	//处理链接http://www.gaokao.com/e/20160111/569382097691b.shtml，标记为2016年
+	crawlXyh2016("http://www.gaokao.com/e/20160111/569382097691b.shtml", 2019, 0)
 	//提示结束
 	log.Println("end...")
 }
@@ -213,6 +215,49 @@ func crawlXyh(url string, year int, tableIdx int) {
 	}
 }
 
+func crawlXyh2016(url string, year int, tableIdx int) {
+	doc, err := fetchDoc(url)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	//本网页字段包含无法识别字符，创造字符串变量将其置换
+	var deprecate string
+
+	var row []string
+	var rows [][]string
+	doc.Find("table").Each(func(i int, ta *goquery.Selection) {
+		if i == tableIdx {
+			ta.Find("tr").Each(func(i int, tr *goquery.Selection) {
+				tr.Find("td").Each(func(j int, td *goquery.Selection) {
+					row = append(row, td.Text())
+				})
+				if len(row) != 0 {
+					rows = append(rows, row)
+				}
+				row = nil
+			})
+		}
+	})
+	deprecate = strings.Split(rows[2][0], "1")[0]
+	for _, r := range rows[2:] {
+		var item Rank
+		item.Brand = "xyh"
+		item.Year = year
+		item.Rank, _ = strconv.Atoi(strings.Trim(r[0], deprecate))
+		item.Name = strings.Trim(r[1], deprecate)
+		item.Category = strings.Trim(r[2], deprecate)
+		item.Location = strings.Trim(r[3], deprecate)
+		item.Score = stringToFloat64(strings.Trim(r[4], deprecate))
+		item.TypeOfSchool = strings.Trim(r[5], deprecate)
+		item.Star, _ = strconv.Atoi(strings.TrimRight(strings.Trim(r[6], deprecate), "星级"))
+		item.Level = strings.Trim(r[7], deprecate)
+
+		// save
+		save(&item)
+	}
+}
+
 //save 将rank元组存入数据库
 func save(rank *Rank) {
 	//使用已连接的数据库插入一个元组
@@ -283,7 +328,7 @@ func crawlXyh2017start(url string, year int, tableIdx int) {
 		item.Location = r[2]
 		item.RankInlocation, _ = strconv.Atoi(r[3])
 		item.Score = stringToFloat64(r[4])
-		item.Category = r[5]
+		item.TypeOfSchool = r[5]
 		item.Star, _ = strconv.Atoi(strings.Trim(r[6], "星级"))
 		item.Level = r[7]
 
@@ -323,9 +368,9 @@ func crawlXyh2017(url string, year int, tableIdx int) {
 		item.Location = r[2]
 		item.RankInlocation, _ = strconv.Atoi(r[3])
 		item.Score = stringToFloat64(r[4])
-		item.Category = r[5]
+		item.TypeOfSchool = r[5]
 		item.Star, _ = strconv.Atoi(strings.Trim(r[6], "星级"))
-		item.Level = r[7]
+		item.Level = strings.TrimRight(r[7], "返回搜狐，查看更多")
 
 		// save
 		save(&item)
