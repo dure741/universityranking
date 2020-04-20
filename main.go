@@ -126,27 +126,27 @@ func main() {
 	//AutoMigrate 对指定模型运行自动迁移，只会添加缺少的字段，不会删除/更改当前数据
 	db.AutoMigrate(&Rank{})
 
-	// //处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
-	// crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
-	// //处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
-	// crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
-	// //处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
-	// crawlXyh("https://www.dxsbb.com/news/1383.html", 2018, 0)
-	// //处理链接https://www.dxsbb.com/news/1383.html，标记为2018年，此为第二页
-	// crawlXyh("https://www.dxsbb.com/news/1383_2.html", 2018, 0)
-	// //处理链接https://www.sohu.com/a/126283593_356902，标记为2018年
-	// crawlXyh2017start("https://www.sohu.com/a/126283593_356902", 2017, 0)
-	// for i := 1; i <= 6; i++ {
-	// 	crawlXyh2017("https://www.sohu.com/a/126283593_356902", 2017, i)
-	// }
-	// //处理链接https://www.phb123.com/jiaoyu/gx/32517.html，标记为2019年
-	// crawlWsl2019("https://www.phb123.com/jiaoyu/gx/32517.html", 2019)
-	// //处理链接http://www.gaokao.com/e/20160111/569382097691b.shtml，标记为2016年
-	// crawlXyh2016("http://www.gaokao.com/e/20160111/569382097691b.shtml", 2016, 0)
-	// //处理链接https://www.phb123.com/jiaoyu/gx/3427.html，标记为2015年
-	// crawlXyh2015("https://www.phb123.com/jiaoyu/gx/3427.html", 2015, 0)
-	// //处理链接https://www.sohu.com/a/202060292_760366，标记为2012017
-	// crawlNetBig2017("https://www.sohu.com/a/202060292_760366", 2015, 0)
+	//处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
+	crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
+	//处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
+	crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
+	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
+	crawlXyh("https://www.dxsbb.com/news/1383.html", 2018, 0)
+	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年，此为第二页
+	crawlXyh("https://www.dxsbb.com/news/1383_2.html", 2018, 0)
+	//处理链接https://www.sohu.com/a/126283593_356902，标记为2018年
+	crawlXyh2017start("https://www.sohu.com/a/126283593_356902", 2017, 0)
+	for i := 1; i <= 6; i++ {
+		crawlXyh2017("https://www.sohu.com/a/126283593_356902", 2017, i)
+	}
+	//处理链接https://www.phb123.com/jiaoyu/gx/32517.html，标记为2019年
+	crawlWsl2019("https://www.phb123.com/jiaoyu/gx/32517.html", 2019)
+	//处理链接http://www.gaokao.com/e/20160111/569382097691b.shtml，标记为2016年
+	crawlXyh2016("http://www.gaokao.com/e/20160111/569382097691b.shtml", 2016, 0)
+	//处理链接https://www.phb123.com/jiaoyu/gx/3427.html，标记为2015年
+	crawlXyh2015("https://www.phb123.com/jiaoyu/gx/3427.html", 2015, 0)
+	//处理链接https://www.sohu.com/a/202060292_760366，标记为2012017
+	crawlNetBig2017("https://www.sohu.com/a/202060292_760366", 2015, 0)
 	// //至此国内排行榜大致结束
 
 	db.Close()
