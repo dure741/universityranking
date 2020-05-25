@@ -126,8 +126,8 @@ func main() {
 	//AutoMigrate 对指定模型运行自动迁移，只会添加缺少的字段，不会删除/更改当前数据
 	db.AutoMigrate(&Rank{})
 
-	//处理链接https://www.dxsbb.com/news/46702.html，标记未2018年
-	crawlWsl("https://www.dxsbb.com/news/46702.html", 2018)
+	//处理链接https://www.dxsbb.com/news/46702.html，标记未2019年
+	crawlWsl("https://www.dxsbb.com/news/46702.html", 2019)
 	//处理链接https://www.dxsbb.com/news/5463.html，标记为2019年
 	crawlXyh("https://www.dxsbb.com/news/5463.html", 2019, 1)
 	//处理链接https://www.dxsbb.com/news/1383.html，标记为2018年
