@@ -308,16 +308,17 @@ func crawlWsl(url string, year int) {
 		row = nil
 	})
 
-	for _, r := range rows {
+	for _, r := range rows[1:] {
 		//初始数据库元组结构体
 		var item Rank
 		item.Brand = "wsl"
 		item.Year = year
 		item.Rank, _ = strconv.Atoi(r[0])
-		item.Name = r[1]
-		item.Category = r[2]
+		item.RankInlocation, _ = strconv.Atoi(r[1])
+		item.Name = r[2]
+		//item.Category = r[2]
 		item.Location = r[3]
-		item.Score = stringToFloat64(r[4])
+		//item.Score = stringToFloat64(r[4])
 		// save每一个元组
 		save(&item)
 	}
